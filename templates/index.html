@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Text Classification Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .result-item.error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .result-label {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .result-label.complaint {
+            background: #dc3545;
+        }
+
+        .result-label.inquiry {
+            background: #007bff;
+        }
+
+        .result-label.feedback {
+            background: #28a745;
+        }
+
+        .result-label.other {
+            background: #6c757d;
+        }
+
+        .result-text {
+            margin-bottom: 10px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .result-confidence {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .result-rationale {
+            color: #555;
+            font-style: italic;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.active {
+            display: block;
+        }
+
+        .batch-input {
+            margin-bottom: 15px;
+        }
+
+        .batch-input textarea {
+            min-height: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .batch-hint {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI-Powered Text Classification</h1>
+            <p>Classify text into categories using OpenAI's LLM API</p>
+        </div>
+
+        <div class="card">
+            <div id="status" class="status"></div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('single')">Single Text</button>
+                <button class="tab" onclick="switchTab('batch')">Batch Text</button>
+                <button class="tab" onclick="switchTab('file')">Upload File</button>
+            </div>
+
+            <!-- Single Text Tab -->
+            <div id="single-tab" class="tab-content active">
+                <h2>Classify Single Text</h2>
+                <textarea id="single-text" placeholder="Enter text to classify here..."></textarea>
+                <button class="btn" onclick="classifySingle()">Classify Text</button>
+            </div>
+
+            <!-- Batch Text Tab -->
+            <div id="batch-tab" class="tab-content">
+                <h2>Classify Multiple Texts</h2>
+                <div class="batch-input">
+                    <textarea id="batch-text" placeholder="Enter one text per line..."></textarea>
+                    <div class="batch-hint">Enter one text per line. Maximum 100 texts.</div>
+                </div>
+                <button class="btn" onclick="classifyBatch()">Classify All</button>
+            </div>
+
+            <!-- File Upload Tab -->
+            <div id="file-tab" class="tab-content">
+                <h2>Upload File</h2>
+                <div class="file-upload" id="file-upload" onclick="document.getElementById('file-input').click()">
+                    <p>📁 Click to upload or drag and drop</p>
+                    <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                        Supports: .txt (one per line) or .json (array of strings)
+                    </p>
+                </div>
+                <input type="file" id="file-input" accept=".txt,.json" onchange="handleFileSelect(event)">
+                <div id="file-name" style="margin-top: 10px; color: #666;"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Classifying text...</p>
+            </div>
+        </div>
+
+        <div class="card results" id="results" style="display: none;">
+            <h2>Classification Results</h2>
+            <div id="results-content"></div>
+            <div class="stats" id="stats"></div>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="downloadResults()">Download Results (JSON)</button>
+                <button class="btn btn-secondary" onclick="clearResults()">Clear Results</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let classificationResults = [];
+
+        // Check status on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkStatus();
+        });
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                if (data.status === 'ready') {
+                    showStatus('Classifier ready! Labels: ' + data.labels.join(', '), 'success');
+                } else {
+                    showStatus('Error: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showStatus('Error connecting to server: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type + ' active';
+            setTimeout(() => {
+                status.classList.remove('active');
+            }, 5000);
+        }
+
+        function switchTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+
+        async function classifySingle() {
+            const text = document.getElementById('single-text').value.trim();
+            if (!text) {
+                showStatus('Please enter some text to classify', 'error');
+                return;
+            }
+
+            await performClassification('/api/classify', { text: text });
+        }
+
+        async function classifyBatch() {
+            const text = document.getElementById('batch-text').value.trim();
+            if (!text) {
+                showStatus('Please enter texts to classify', 'error');
+                return;
+            }
+
+            const texts = text.split('\n').filter(t => t.trim());
+            if (texts.length === 0) {
+                showStatus('No valid texts found', 'error');
+                return;
+            }
+
+            if (texts.length > 100) {
+                showStatus('Maximum 100 texts allowed', 'error');
+                return;
+            }
+
+            await performClassification('/api/classify-batch', { texts: texts });
+        }
+
+        async function performClassification(endpoint, data) {
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            loading.classList.add('active');
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Classification failed');
+                }
+
+                // Handle single result
+                if (result.predicted_label) {
+                    classificationResults = [result];
+                } else if (result.results) {
+                    classificationResults = result.results;
+                } else {
+                    classificationResults = [result];
+                }
+
+                displayResults(classificationResults);
+                showStatus('Classification completed successfully!', 'success');
+
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function displayResults(results) {
+            const resultsContent = document.getElementById('results-content');
+            const stats = document.getElementById('stats');
+            const resultsDiv = document.getElementById('results');
+
+            resultsContent.innerHTML = '';
+
+            // Calculate statistics
+            const labelCounts = {};
+            let totalConfidence = 0;
+            let validResults = 0;
+
+            results.forEach(result => {
+                if (!result.error) {
+                    labelCounts[result.predicted_label] = (labelCounts[result.predicted_label] || 0) + 1;
+                    if (result.confidence) {
+                        totalConfidence += result.confidence;
+                        validResults++;
+                    }
+                }
+            });
+
+            // Display results
+            results.forEach((result, index) => {
+                const item = document.createElement('div');
+                item.className = 'result-item' + (result.error ? ' error' : '');
+
+                if (result.error) {
+                    item.innerHTML = `
+                        <div class="result-text"><strong>Text ${index + 1}:</strong> ${escapeHtml(result.text)}</div>
+                        <div style="color: #dc3545; margin-top: 10px;">Error: ${escapeHtml(result.error)}</div>
+                    `;
+                } else {
+                    const labelClass = result.predicted_label.toLowerCase().replace(/\s+/g, '-');
+                    item.innerHTML = `
+                        <div class="result-label ${labelClass}">${escapeHtml(result.predicted_label)}</div>
+                        <div class="result-text"><strong>Text ${index + 1}:</strong> ${escapeHtml(result.text)}</div>
+                        ${result.confidence ? `<div class="result-confidence">Confidence: ${(result.confidence * 100).toFixed(1)}%</div>` : ''}
+                        ${result.rationale ? `<div class="result-rationale">${escapeHtml(result.rationale)}</div>` : ''}
+                    `;
+                }
+
+                resultsContent.appendChild(item);
+            });
+
+            // Display statistics
+            if (results.length > 1) {
+                stats.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">${results.length}</div>
+                        <div class="stat-label">Total Texts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${Object.keys(labelCounts).length}</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    ${validResults > 0 ? `
+                    <div class="stat-item">
+                        <div class="stat-value">${(totalConfidence / validResults * 100).toFixed(1)}%</div>
+                        <div class="stat-label">Avg Confidence</div>
+                    </div>
+                    ` : ''}
+                `;
+            } else {
+                stats.innerHTML = '';
+            }
+
+            resultsDiv.style.display = 'block';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('file-name').textContent = 'Selected: ' + file.name;
+                uploadFile(file);
+            }
+        }
+
+        // Drag and drop
+        const fileUpload = document.getElementById('file-upload');
+        
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                document.getElementById('file-input').files = e.dataTransfer.files;
+                document.getElementById('file-name').textContent = 'Selected: ' + file.name;
+                uploadFile(file);
+            }
+        });
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            
+            loading.classList.add('active');
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/classify-file', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'File classification failed');
+                }
+
+                classificationResults = result.results || [];
+                displayResults(classificationResults);
+                showStatus(`Successfully classified ${result.count} texts!`, 'success');
+
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function downloadResults() {
+            if (classificationResults.length === 0) {
+                showStatus('No results to download', 'error');
+                return;
+            }
+
+            fetch('/api/download-results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ results: classificationResults })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'classification_results.json';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                showStatus('Error downloading file: ' + error.message, 'error');
+            });
+        }
+
+        function clearResults() {
+            classificationResults = [];
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('results-content').innerHTML = '';
+            document.getElementById('stats').innerHTML = '';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

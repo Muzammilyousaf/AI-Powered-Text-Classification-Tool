@@ -1,0 +1,5 @@
+{
+  "labels": ["Complaint", "Inquiry", "Feedback", "Other"],
+  "prompt_template": "You are a text classification system. Classify the following text into exactly one of these categories: {labels}\n\nClassification Rules:\n- Complaint: Expresses dissatisfaction, problems, or negative experiences\n- Inquiry: Asks questions, seeks information, or requests clarification\n- Feedback: Provides suggestions, opinions, or general comments (positive or constructive)\n- Other: Does not fit into the above categories\n\nText to classify: \"{text}\"\n\nRespond with a JSON object containing:\n1. \"label\": The exact category name (must match one of: {labels})\n2. \"confidence\": A number between 0.0 and 1.0 indicating classification confidence\n3. \"rationale\": A brief explanation (1-2 sentences) of why this classification was chosen\n\nResponse format (JSON only, no additional text):"
+}
+
